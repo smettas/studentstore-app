@@ -1,0 +1,9 @@
+# Stable line endings across Windows, Linux and GitHub Actions
+* text=auto
+*.py text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf

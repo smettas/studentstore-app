@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "StudentStore",
+    "slug": "studentstore",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.studentstore.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.studentstore.app"
+    }
+  }
+}

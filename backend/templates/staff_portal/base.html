@@ -1,0 +1,11 @@
+{% load static %}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}StudentStore Staff{% endblock %}</title><link rel="stylesheet" href="{% static 'staff_portal/portal.css' %}"></head>
+<body><header><strong>StudentStore · Staff</strong><nav>
+<a href="{% url 'staff_portal:dashboard' %}">Dashboard</a><a href="{% url 'staff_portal:products' %}">Products</a>
+<a href="{% url 'staff_portal:categories' %}">Categories</a><a href="{% url 'staff_portal:stock' %}">Stock</a>
+<a href="{% url 'staff_portal:orders' %}">Orders</a><a href="{% url 'staff_portal:coupons' %}">Coupons</a>
+<a href="{% url 'staff_portal:banners' %}">Banners</a><a href="{% url 'staff_portal:reports' %}">Reports</a>
+<a href="{% url 'admin:index' %}">Django Admin</a></nav></header><main>
+{% if messages %}{% for message in messages %}<p role="status">{{ message }}</p>{% endfor %}{% endif %}
+{% block content %}{% endblock %}</main></body></html>
