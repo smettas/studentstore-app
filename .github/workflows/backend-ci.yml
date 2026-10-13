@@ -49,3 +49,8 @@ jobs:
       - name: Test storage configuration without a database
         working-directory: backend
         run: python manage.py test core.storage.tests
+      - name: Read-only API and security regression tests
+        working-directory: backend
+        run: python manage.py test core.readiness.tests
+      - name: Audit tracked files for obvious secrets
+        run: python backend/scripts/security_audit.py

@@ -26,7 +26,7 @@ def delivery_fee(subtotal):
 
 
 @transaction.atomic
-def create_order(*, user, address_id, coupon_code, payment_method):
+def create_order(*, user, address_id, payment_method, coupon_code=""):
     # Lock cart to prevent concurrent checkouts for the same user.
     cart = Cart.objects.select_for_update().filter(user=user).first()
     if cart is None:

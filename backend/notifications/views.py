@@ -3,13 +3,19 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from .models import Notification, PushDevice
 from .serializers import NotificationSerializer, PushDeviceSerializer
 
 
+class NotificationPagination(PageNumberPagination):
+    page_size = 20
+
+
 class NotificationListView(ListAPIView):
+    pagination_class = NotificationPagination
     permission_classes = [IsAuthenticated]
     serializer_class = NotificationSerializer
 
