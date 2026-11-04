@@ -16,7 +16,8 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS")
 # Keep separate POSTGRES_* support for alternative hosting.
 DATABASE_URL = env("DATABASE_URL", default="")
 if DATABASE_URL:
-    DATABASES["default"] = env.db_url_config(DATABASE_URL, conn_max_age=60)
+    DATABASES["default"] = env.db_url_config(DATABASE_URL)
+    DATABASES["default"]["CONN_MAX_AGE"] = 60
 elif env("POSTGRES_PASSWORD", default="") in {"", "change-me"}:
     raise ImproperlyConfigured("Set DATABASE_URL or real POSTGRES_* database credentials.")
 
