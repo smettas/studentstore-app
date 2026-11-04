@@ -1,17 +1,21 @@
 from pathlib import Path
+import os
 import environ
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 env = environ.Env(
     DJANGO_DEBUG=(bool, False),
 )
-environ.Env.read_env(BASE_DIR / ".env")
+# Dedicated local import environment, so Railway DB credentials never overwrite
+# local development .env; Railway itself uses injected environment variables.
+environ.Env.read_env(os.environ.get("STUDENTSTORE_ENV_FILE") or BASE_DIR / ".env")
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["127.0.0.1", "localhost"])
 
 INSTALLED_APPS = [
+    "delivery",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -88,6 +92,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 # Phase 12: public product/banner media only. Static assets stay on WhiteNoise.
 # Use local files until Cloudflare R2 is configured. No credentials in source.
 STUDENTSTORE_MEDIA_PROVIDER = env("STUDENTSTORE_MEDIA_PROVIDER", default="local").lower()
+# proxy: public images streamed via Railway backend from private R2 (no domain needed);
+# public: R2 custom domain, recommended for higher-volume production traffic.
+R2_DELIVERY_MODE = env("R2_DELIVERY_MODE", default="proxy").lower()
+if R2_DELIVERY_MODE not in {"proxy", "public"}:
+    raise ValueError("R2_DELIVERY_MODE must be 'proxy' or 'public'")
 if STUDENTSTORE_MEDIA_PROVIDER not in {"local", "r2"}:
     raise ValueError("STUDENTSTORE_MEDIA_PROVIDER must be 'local' or 'r2'")
 
@@ -99,8 +108,11 @@ if STUDENTSTORE_MEDIA_PROVIDER == "r2":
     AWS_ACCESS_KEY_ID = env("R2_ACCESS_KEY_ID", default="")
     AWS_SECRET_ACCESS_KEY = env("R2_SECRET_ACCESS_KEY", default="")
     AWS_STORAGE_BUCKET_NAME = env("R2_BUCKET_NAME", default="")
-    AWS_S3_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="")
-    AWS_S3_CUSTOM_DOMAIN = env("R2_PUBLIC_DOMAIN", default="")
+    R2_ACCOUNT_ID = env("R2_ACCOUNT_ID", default="")
+    AWS_S3_ENDPOINT_URL = env("R2_ENDPOINT_URL", default="") or (
+        f"https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com" if R2_ACCOUNT_ID else ""
+    )
+    AWS_S3_CUSTOM_DOMAIN = env("R2_PUBLIC_DOMAIN", default="") if R2_DELIVERY_MODE == "public" else None
     AWS_S3_REGION_NAME = "auto"
     AWS_DEFAULT_ACL = None
     AWS_QUERYSTRING_AUTH = False
@@ -139,3 +151,6 @@ STUDENTSTORE_FREE_DELIVERY_THRESHOLD = env("STUDENTSTORE_FREE_DELIVERY_THRESHOLD
 RAZORPAY_KEY_ID = env("RAZORPAY_KEY_ID", default="")
 RAZORPAY_KEY_SECRET = env("RAZORPAY_KEY_SECRET", default="")
 RAZORPAY_WEBHOOK_SECRET = env("RAZORPAY_WEBHOOK_SECRET", default="")
+
+# Development-only, explicit opt-in; never enable in production.
+STUDENTSTORE_SHOW_DEV_OTP = env.bool("STUDENTSTORE_SHOW_DEV_OTP", default=False) if DEBUG else False

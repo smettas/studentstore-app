@@ -24,7 +24,7 @@ def _digest(mobile, code):
     return hmac.new(key, f"{mobile}:{code}".encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def issue_otp(mobile):
+def issue_otp(mobile, *, return_code=False):
     now = timezone.now()
     with transaction.atomic():
         latest = OTPChallenge.objects.select_for_update().filter(mobile=mobile).order_by("-created_at", "-pk").first()
@@ -42,7 +42,7 @@ def issue_otp(mobile):
         OTPChallenge.objects.filter(pk=challenge.pk).update(expires_at=timezone.now())
         logger.exception("OTP SMS delivery failed")
         raise ValidationError({"detail": "Could not send OTP. Please try again later."})
-    return OTP_LIFETIME_SECONDS
+    return code if return_code else OTP_LIFETIME_SECONDS
 
 
 def consume_otp(mobile, code):

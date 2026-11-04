@@ -10,6 +10,7 @@ from coupons.models import Coupon
 from coupons.services import validate_coupon
 from payments.models import Payment
 from .models import Order, OrderItem, OrderStatusHistory
+from delivery.views import serviceability
 
 
 def delivery_fee(subtotal):
@@ -34,6 +35,11 @@ def create_order(*, user, address_id, payment_method, coupon_code=""):
     address = Address.objects.filter(pk=address_id, user=user).first()
     if address is None:
         raise ValidationError({"address_id": "Address not found."})
+    if payment_method != "cod":
+        raise ValidationError({"payment_method":"Only Cash on Delivery is currently available."})
+    check = serviceability(address.postal_code)
+    if not check.get("cod_available"):
+        raise ValidationError({"address_id":"Cash on Delivery is unavailable for this pincode. Check delivery settings in Django Admin."})
     cart_items = list(CartItem.objects.filter(cart=cart).order_by("product_id"))
     if not cart_items:
         raise ValidationError({"detail": "Cart is empty."})

@@ -5,13 +5,23 @@ from .models import Order, OrderItem, OrderStatusHistory
 class CheckoutSerializer(serializers.Serializer):
     address_id = serializers.IntegerField(min_value=1)
     coupon_code = serializers.CharField(max_length=40, required=False, allow_blank=True)
-    payment_method = serializers.ChoiceField(choices=["cod", "razorpay"])
+    payment_method = serializers.ChoiceField(choices=["cod"])
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
+    product_slug = serializers.CharField(source="product.slug", read_only=True, default=None)
+    image_url = serializers.SerializerMethodField()
+
+    def get_image_url(self, obj):
+        image = obj.product.images.order_by("position", "id").first() if obj.product_id else None
+        if not image or not image.image:
+            return None
+        url = image.image.url
+        request = self.context.get("request")
+        return request.build_absolute_uri(url) if request else url
     class Meta:
         model = OrderItem
-        fields = ("id", "product", "product_name", "sku", "quantity", "unit_price", "line_total")
+        fields = ("id", "product", "product_slug", "image_url", "product_name", "sku", "quantity", "unit_price", "line_total")
 
 
 class OrderStatusHistorySerializer(serializers.ModelSerializer):

@@ -36,18 +36,21 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductListSerializer(serializers.ModelSerializer):
+    images = ProductImageSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     brand = BrandSerializer(read_only=True)
     study_levels = StudyLevelSerializer(many=True, read_only=True)
     primary_image = serializers.SerializerMethodField()
     effective_price = serializers.SerializerMethodField()
     in_stock = serializers.SerializerMethodField()
+    pack_quantity = serializers.SerializerMethodField()
+    subcategory = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
         fields = ("id", "name", "slug", "sku", "category", "brand", "study_levels",
                   "product_type", "price", "discount_price", "effective_price", "stock",
-                  "in_stock", "primary_image")
+                  "in_stock", "pack_quantity", "subcategory", "primary_image", "images")
 
     def get_primary_image(self, obj):
         image = next(iter(obj.images.all()), None)
@@ -59,9 +62,14 @@ class ProductListSerializer(serializers.ModelSerializer):
     def get_in_stock(self, obj):
         return obj.stock > 0
 
+    def get_pack_quantity(self, obj):
+        return (obj.specifications or {}).get("pack_quantity", "")
+
+    def get_subcategory(self, obj):
+        return (obj.specifications or {}).get("subcategory", "")
+
 
 class ProductDetailSerializer(ProductListSerializer):
-    images = ProductImageSerializer(many=True, read_only=True)
 
     class Meta(ProductListSerializer.Meta):
-        fields = ProductListSerializer.Meta.fields + ("description", "images", "created_at", "updated_at")
+        fields = ProductListSerializer.Meta.fields + ("description", "highlights", "specifications", "created_at", "updated_at")

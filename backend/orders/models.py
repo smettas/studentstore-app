@@ -7,6 +7,7 @@ class Order(models.Model):
         CONFIRMED = "confirmed", "Confirmed"
         PACKED = "packed", "Packed"
         SHIPPED = "shipped", "Shipped"
+        OUT_FOR_DELIVERY = "out_for_delivery", "Out for delivery"
         DELIVERED = "delivered", "Delivered"
         CANCELLED = "cancelled", "Cancelled"
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
@@ -14,7 +15,7 @@ class Order(models.Model):
     shipping_name = models.CharField(max_length=150)
     shipping_phone = models.CharField(max_length=15)
     shipping_address = models.TextField()
-    status = models.CharField(max_length=12, choices=Status.choices, default=Status.PLACED)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PLACED)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
     discount_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     shipping_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -35,7 +36,7 @@ class OrderItem(models.Model):
 
 class OrderStatusHistory(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="status_history")
-    status = models.CharField(max_length=12, choices=Order.Status.choices)
+    status = models.CharField(max_length=20, choices=Order.Status.choices)
     note = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:

@@ -1,0 +1,11 @@
+# Student Store secrets and local import artefacts; never commit.
+.env
+.env.*
+!.env.example
+!.env.production.example
+batch02_reports/
+media/
+staticfiles/
+.venv/
+__pycache__/
+*.pyc

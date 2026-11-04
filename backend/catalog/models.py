@@ -25,6 +25,8 @@ class Product(models.Model):
     slug = models.SlugField(max_length=255, unique=True)
     sku = models.CharField(max_length=64, unique=True)
     description = models.TextField(blank=True)
+    highlights = models.TextField(blank=True, help_text="One verified feature per line")
+    specifications = models.JSONField(default=dict, blank=True, help_text="Verified specification key/value pairs")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True, related_name="products")
     study_levels = models.ManyToManyField(StudyLevel, blank=True, related_name="products")
@@ -44,3 +46,21 @@ class ProductImage(models.Model):
     position = models.PositiveSmallIntegerField(default=0)
     class Meta:
         ordering = ["position", "id"]
+
+
+class ProductReview(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    user = models.ForeignKey("accounts.User", on_delete=models.CASCADE, related_name="product_reviews")
+    rating = models.PositiveSmallIntegerField()
+    title = models.CharField(max_length=120, blank=True)
+    comment = models.TextField(max_length=2000)
+    is_approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["product", "user"], name="unique_product_user_review")]
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.product.sku}: {self.rating}/5"

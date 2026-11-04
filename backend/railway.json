@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {"builder": "RAILPACK", "buildCommand": "python manage.py collectstatic --noinput --settings=config.settings.build"},
+  "deploy": {
+    "preDeployCommand": ["python manage.py migrate --noinput"],
+    "startCommand": "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 90",
+    "healthcheckPath": "/api/health/",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

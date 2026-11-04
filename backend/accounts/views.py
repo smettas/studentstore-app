@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from rest_framework import status
@@ -38,8 +39,12 @@ class SignupView(APIView):
         except IntegrityError:
             return Response({"detail": "Account already exists."}, status=400)
         # Signup sends OTP; verification activates the user.
-        issue_otp(user.mobile)
-        return Response({"detail": "Signup received. Verify the OTP to activate your account.", "mobile": user.mobile}, status=status.HTTP_201_CREATED)
+        dev_mode = bool(settings.DEBUG and getattr(settings, "STUDENTSTORE_SHOW_DEV_OTP", False) and getattr(settings, "OTP_PROVIDER", "console") == "console")
+        code = issue_otp(user.mobile, return_code=dev_mode)
+        payload = {"detail": "Signup received. Verify the OTP to activate your account.", "mobile": user.mobile}
+        if dev_mode:
+            payload["dev_otp"] = code
+        return Response(payload, status=status.HTTP_201_CREATED)
 
 
 class SendOTPView(APIView):
@@ -50,10 +55,15 @@ class SendOTPView(APIView):
         serializer = MobileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         mobile = serializer.validated_data["mobile"]
+        dev_mode = bool(settings.DEBUG and getattr(settings, "STUDENTSTORE_SHOW_DEV_OTP", False) and getattr(settings, "OTP_PROVIDER", "console") == "console")
+        code = None
         if get_user_model().objects.filter(mobile=mobile, is_active=True).exists():
-            issue_otp(mobile)
-        # Identical response for unknown mobile numbers to reduce enumeration.
-        return Response({"detail": "If the mobile number is registered, an OTP has been sent."})
+            code = issue_otp(mobile, return_code=dev_mode)
+        # Never reveal whether a mobile number exists in production.
+        payload = {"detail": "If the mobile number is registered, an OTP has been sent."}
+        if dev_mode and code is not None:
+            payload["dev_otp"] = code
+        return Response(payload)
 
 
 class VerifyOTPView(APIView):

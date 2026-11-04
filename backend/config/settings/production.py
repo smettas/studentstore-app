@@ -40,3 +40,10 @@ if STUDENTSTORE_MEDIA_PROVIDER != "r2":
         "Production requires STUDENTSTORE_MEDIA_PROVIDER=r2 with a configured R2 bucket. "
         "Keep using local settings until cloud credentials are available."
     )
+
+# The Cloudflare-managed r2.dev URL is intended for testing only. For first
+# production deployment without a custom domain, use R2_DELIVERY_MODE=proxy.
+if R2_DELIVERY_MODE == "public" and (
+    not AWS_S3_CUSTOM_DOMAIN or AWS_S3_CUSTOM_DOMAIN.lower().endswith("r2.dev")
+):
+    raise ImproperlyConfigured("Use private R2 proxy delivery or a production custom domain; r2.dev is not suitable for production.")
