@@ -23,6 +23,10 @@ elif env("POSTGRES_PASSWORD", default="") in {"", "change-me"}:
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
+# Railway's internal deployment probe uses HTTP, while public visitors use HTTPS.
+# Exempt only the unauthenticated health endpoint so the probe receives HTTP 200
+# rather than an HTTPS redirect; all other paths retain forced HTTPS.
+SECURE_REDIRECT_EXEMPT = [r"^api/health/$"]
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
