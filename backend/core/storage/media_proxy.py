@@ -44,6 +44,6 @@ def public_media(request, key):
         # Avoid leaking S3 request details to clients/logs.
         raise Http404("Image unavailable")
     response = FileResponse(stream, content_type=mimetypes.guess_type(key)[0] or "application/octet-stream")
-    response["Cache-Control"] = "public, max-age=3600"
+    response["Cache-Control"] = "public, max-age=21600, stale-while-revalidate=86400"
     response["X-Content-Type-Options"] = "nosniff"
     return response

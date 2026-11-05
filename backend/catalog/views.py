@@ -46,7 +46,11 @@ class ProductListView(PublicCatalogMixin, generics.ListAPIView):
             qs = qs.annotate(selling_price=Coalesce("discount_price", "price"))
         sort_fields = {"newest": ("-created_at", "-id"), "price_asc": ("selling_price", "id"),
                        "price_desc": ("-selling_price", "id"), "name": ("name", "id")}
-        return qs.select_related("category", "brand").prefetch_related("study_levels", "images").order_by(*sort_fields[ordering])
+        if self.request.query_params.get("search", "").strip() and ordering == "newest" and "search_rank" in qs.query.annotations:
+            selected_order = ("search_rank", "name", "id")
+        else:
+            selected_order = sort_fields[ordering]
+        return qs.select_related("category", "brand").prefetch_related("study_levels", "images").order_by(*selected_order)
 
 
 class ProductDetailView(PublicCatalogMixin, generics.RetrieveAPIView):
